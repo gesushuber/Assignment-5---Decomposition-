@@ -1,0 +1,87 @@
+---
+title: "myHW4 "
+author: "min cheng"
+date: "10/26/2023"
+output: html_document
+---
+```{r}
+library(readxl)
+library(forecast)
+library(fpp)
+library(fpp2)
+
+# Load the data
+data <- read_excel("C:/Users/mchen/OneDrive/Desktop/2023fall syllasbus/Forecasting/homework/w3 2nd/Sample - Superstore.xls")
+
+# Extract the sales column and convert to time series
+sales_data <- ts(data$Sales, start=c(2014, 1), frequency=12) 
+
+head(sales_data)
+plot(sales_data)
+
+# STL decomposition
+stl_decomp <- stl(sales_data, s.window="periodic")
+plot(stl_decomp)
+
+
+
+```
+
+#The time series data has a clear seasonal pattern that repeats at regular intervals.  The trend indicates a decline up to the years 2015 and 2017, with a noticeable rebound in the subsequent years, 2016 and 2018 respectively.                                                                                                    The remainder or residuals seem mostly random, suggesting that the decomposition has effectively captured the main patterns in the data.                                                                                               #The grey bars visually represent the value range for each component (data, seasonal, trend, remainder). They help quickly gauge the magnitude and fluctuations of each element, allowing for easier interpretation of the chart's relative and absolute changes.
+
+```{r}
+attributes(stl_decomp)
+
+seasadj(stl_decomp)
+plot(seasadj(stl_decomp))
+
+
+
+
+```
+#The seasonally adjusted component of a time series provides valuable insights by removing the regular seasonal fluctuations, allowing for a clearer view of the underlying trend:This seasonally adjusted time series shows marked volatility with distinct peaks and troughs. Notable are the sharp declines in early 2015 and mid-2017 and their subsequent recoveries. The upward trend in 2018 suggests potential growth or recovery in the represented metric.
+
+```{r}
+#pass the #of the period 
+f_stl<- forecast(stl_decomp,h=15)
+print(f_stl)
+plot(f_stl)
+lines(f_stl$fitted,col="Red")
+
+accuracy(f_stl)
+
+attributes(f_stl)
+Acf(f_stl$residuals)
+
+f_stl$method
+plot(f_stl)
+lines(f_stl$fitted,col="Red")
+
+
+```
+#INSIGHT  :                                                                                                        The model seems to capture the historical data effectively, as evidenced by the close alignment between the actual values (black line) and fitted values (red line). For the years 2019 and 2020, the forecast values (blue line) indicate stability with some fluctuations. However, when making decisions based on this forecast, it's crucial to account for the uncertainty represented by the shaded regions.
+
+
+```{r}
+#Different ways to do it
+decomp_data <-decompose(sales_data)
+
+attributes(decomp_data)
+
+seasadj(decomp_data)
+
+f_decom<- forecast(seasadj(decomp_data),h=12)
+print(f_decom)
+plot(f_decom)
+
+
+```
+#INSIGHT  : based on the historical data and the ETS(A,N,N) model, there's an expected decrease  in values from 2018 to 2019,and rebounce in 2020. 
+
+```{r}
+accuracy(f_stl)
+accuracy(f_decom)
+
+```
+# Insight: Using MAPE to see which model is better, ETS has a lower score, so it's the better choice.
+  
